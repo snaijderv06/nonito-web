@@ -1,18 +1,79 @@
-import React, { useState } from "react";
-import { Container, Row, Col, Button } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Container, Row, Col, Button, Spinner } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 
 import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
 import NotificacionOperacion from "../components/NotificacionOperacion";
+import TablaCategorias from "../components/Categorias/TablaCategorias";
 
 const Categorias = () => {
-  const [toast, setToast] = useState({ mostrar: false, mensaje: "", tipo: "" });
+
+  const [toast, setToast] = useState({mostrar: false, mensaje: "", tipo: ""});
   const [mostrarModal, setMostrarModal] = useState(false);
 
   const [nuevaCategoria, setNuevaCategoria] = useState({
     nombre_categoria: "",
     descripcion_categoria: "",
   });
+
+  const [categorias, setCategorias] = useState([]);
+  const [cargando, setCargando] = useState(true); //Estado de carga inicial
+  const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
+  const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
+  const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+
+  const [categoriaEditar, setCategoriaEditar] = useState({
+    id_categoria: "",
+    nombre_categoria: "",
+    descripcion_categoria: "",
+  });
+
+  const abrirModalEdicion = (categoria) => {
+    setCategoriaEditar({
+      id_categoria: categoria.id_categoria,
+      nombre_categoria: categoria.nombre_categoria,
+      descripcion_categoria: categoria.descripcion_categoria,
+    });
+    setMostrarModalEdicion(true);
+  };
+
+  const abrirModalEliminacion = (categoria) => {
+    setCategoriaAEliminar(categoria);
+    setMostrarModalEliminacion(true);
+  };
+
+  const cargarCategorias = async () => {
+    try {
+      setCargando(true);
+      const { data, error } = await supabase
+        .from("Categorias")
+        .select("*")
+        .order("id_categoria", { ascending: true});
+        if (error) {
+          console.error("Error al cargar categorías", error.message);
+          setToast({
+            mostrar: true,
+            mensaje: "Error al cargar categorías.",
+            tipo: "error",
+          });
+          return;
+        }
+        setCategorias(data || []);
+    } catch (err) {
+      console.error("Excepción al cargar categorías:", err.message);
+      setToast({
+        mostrar: true,
+        mensaje: "Error inesperado al cargar categorías.",
+        tipo: "error",
+      });
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarCategorias();
+  }, []);
 
   const manejoCambioInput = (e) => {
     const { name, value } = e.target;
@@ -36,33 +97,36 @@ const Categorias = () => {
         return;
       }
 
-      const { error } = await supabase.from("categorias").insert([
+      const { error } = await supabase.from("Categorias"). insert([
         {
           nombre_categoria: nuevaCategoria.nombre_categoria,
           descripcion_categoria: nuevaCategoria.descripcion_categoria,
         },
       ]);
 
-      if (error) {
-        console.error("Error al agregar categoría:", error.message);
+      if(error) {
+        console.error("Error al agregar categoría: ", error.message);
         setToast({
-          mostrar: true,
+          mostrar:true,
           mensaje: "Error al registrar categoría.",
           tipo: "error",
         });
         return;
       }
 
+      //Éxito
       setToast({
         mostrar: true,
         mensaje: `Categoría "${nuevaCategoria.nombre_categoria}" registrada exitosamente.`,
         tipo: "exito",
       });
 
-      setNuevaCategoria({ nombre_categoria: "", descripcion_categoria: "" });
+      //Limpiar formulario y cerrar modal
+      setNuevaCategoria({ nombre_categoria: "", descripcion_categoria: ""});
+      await cargarCategorias();
       setMostrarModal(false);
     } catch (err) {
-      console.error("Excepción al agregar categoría:", err.message);
+      console.error("Excepción al agregar categoría: ", err.message);
       setToast({
         mostrar: true,
         mensaje: "Error inesperado al registrar categoría.",
@@ -73,9 +137,8 @@ const Categorias = () => {
 
   return (
     <Container className="mt-3">
-      {/* Título y botón Nueva Categoría */}
       <Row className="align-items-center mb-3">
-        <Col xs={9} sm={7} md={7} lg={7} className="d-flex align-items-center">
+        <Col xs={9} sm={7} lg={7} className="d-flex align-items-center">
           <h3 className="mb-0">
             <i className="bi-bookmark-plus-fill me-2"></i> Categorías
           </h3>
@@ -86,15 +149,37 @@ const Categorias = () => {
             size="md"
           >
             <i className="bi-plus-lg"></i>
-            <span className="d-none d-sm-inline ms-2">Nueva Categoría</span>
+            <span className="d-none d-ms-inline ms-2">Nueva Categoría</span>
           </Button>
         </Col>
       </Row>
 
       <hr />
 
-      {/* Modal de Registro */}
-      <ModalRegistroCategoria
+      {/* Spinner mientras se cargan las categorías */}
+      {cargando && (
+        <Row className="text-center my-5">
+          <Col>
+            <Spinner animation="border" variant="success" size="lg" />
+            <p className="mt-3 text-muted">Cargando categorías...</p>
+          </Col>
+        </Row>
+      )}
+
+      {/* Lista de categorías cargadas */}
+      {!cargando && categorias.length > 0 && (
+        <Row>
+          <Col lg={12} className="d-none d-lg-block">
+            <TablaCategorias
+              categorias={categorias}
+              abrirModalEdicion={abrirModalEdicion}
+              abrirModalEliminacion={abrirModalEliminacion}
+            />
+          </Col>
+        </Row>
+      )}
+
+      <ModalRegistroCategoria 
         mostrarModal={mostrarModal}
         setMostrarModal={setMostrarModal}
         nuevaCategoria={nuevaCategoria}
@@ -102,12 +187,11 @@ const Categorias = () => {
         agregarCategoria={agregarCategoria}
       />
 
-      {/* Notificación */}
-      <NotificacionOperacion
+      <NotificacionOperacion 
         mostrar={toast.mostrar}
         mensaje={toast.mensaje}
         tipo={toast.tipo}
-        onCerrar={() => setToast({ ...toast, mostrar: false })}
+        onCerrar={() => setToast({ ...toast, mostrar: false})}
       />
     </Container>
   );
