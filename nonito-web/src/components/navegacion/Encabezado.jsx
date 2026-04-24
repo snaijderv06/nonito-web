@@ -140,7 +140,7 @@ const Encabezado = () => {
 
   return (
     <Navbar expand="md" fixed="top" className="color-navbar shadow-lg" variant="dark">
-      <Container>
+      <Container fluid>
 
         <Navbar.Brand
           onClick={() => manejarNavegacion(esCatalogo ? "/catalogo" : "/")}
@@ -155,7 +155,7 @@ const Encabezado = () => {
             className="d-inline-block me-2"
           />
           <strong>
-            <h4 className="mb-0">Discosa</h4>
+            <h4 className="mb-0">NonitoCorp</h4>
           </strong>
         </Navbar.Brand>
 
@@ -175,7 +175,7 @@ const Encabezado = () => {
           onHide={() => setMostrarMenu(false)}
         >
           <Offcanvas.Header closeButton>
-            <Offcanvas.Title>Menú Discosa</Offcanvas.Title>
+            <Offcanvas.Title>Menú NonitoCorp</Offcanvas.Title>
           </Offcanvas.Header>
 
           <Offcanvas.Body>
