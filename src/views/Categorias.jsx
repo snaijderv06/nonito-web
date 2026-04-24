@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"; 
 import { Container, Row, Col, Button, Spinner, Alert } from "react-bootstrap";
-import { supabase } from "../database/supabaseconfig";
+import { supabase } from "../Database/supabaseconfig";
 
 // Importación de componentes
 import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
