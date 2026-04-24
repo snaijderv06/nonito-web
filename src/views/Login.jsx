@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import FormularioLogin from "../components/login/FormularioLogin";
-import { supabase } from "../database/supabaseconfig";
+import { supabase } from "../Database/supabaseconfig";
 import '../App.css';
 
 const Login = () => {
