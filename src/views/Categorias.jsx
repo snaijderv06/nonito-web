@@ -3,12 +3,12 @@ import { Container, Row, Col, Button, Spinner, Alert } from "react-bootstrap";
 import { supabase } from "../Database/supabaseconfig";
 
 // Importación de componentes
-import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
+import ModalRegistroCategoria from "../components/Categorias/ModalRegistroCategoria";
 import NotificacionOperacion from "../components/NotificacionOperacion";
-import TablaCategorias from "../components/categorias/TablaCategorias";
+import TablaCategorias from "../components/Categorias/TablaCategorias";
 import TarjetaCategoria from "../components/Categorias/TarjetaCategoria"; 
-import ModalEdicionCategoria from "../components/categorias/ModalEdicionCategoria"; 
-import ModalEliminacionCategoria from "../components/categorias/ModalEliminacionCategoria";
+import ModalEdicionCategoria from "../components/Categorias/ModalEdicionCategoria"; 
+import ModalEliminacionCategoria from "../components/Categorias/ModalEliminacionCategoria";
 import CuadroBusquedas from "../components/Busquedas/CuadroBusquedas";
 import Paginacion from "../components/Ordenamiento/Paginacion";
 
