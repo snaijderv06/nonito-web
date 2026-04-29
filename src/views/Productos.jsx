@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Alert, Spinner } from "react-bootstrap";
 import { supabase } from "../Database/supabaseconfig";
 import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
 import NotificacionOperacion from "../components/NotificacionOperacion";
-import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
+import CuadroBusquedas from "../components/Busquedas/CuadroBusquedas";
 import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import TablaProductos from "../components/productos/TablaProductos";
 import TarjetasProductos from "../components/productos/TarjetasProductos";
