@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Container, Row, Col, Spinner, Alert, Form } from "react-bootstrap";
-import { supabase } from "../database/supabaseconfig";
-import TarjetaCatalogo from "../components/catalogo/TarjetaCatalogo";
-import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
+import { supabase } from "../Database/supabaseconfig";
+import TarjetaCatalogo from "../components/Catalogo/TarjetaCatalogo";
+import CuadroBusquedas from "../components/Busquedas/CuadroBusquedas";
 
 const Catalogo = () => {
 const [productos, setProductos] = useState([]);
