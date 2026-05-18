@@ -10,7 +10,7 @@ import Login from "./views/Login.jsx";
 import RutaProtegida from './components/rutas/RutaProtegida';
 import Pagina404 from './views/Pagina404';
 import Empleados from "./views/Empleados.jsx";
-import Permisos from "./views/permisos.jsx";
+import Permisos from "./views/Permisos.jsx";
 
 import './App.css'
 
