@@ -9,6 +9,8 @@ import Productos from "./views/Productos.jsx";
 import Login from "./views/Login.jsx";
 import RutaProtegida from './components/rutas/RutaProtegida';
 import Pagina404 from './views/Pagina404';
+import Empleados from "./views/Empleados.jsx";
+import Permisos from "./views/permisos.jsx";
 
 import './App.css'
 
@@ -24,6 +26,8 @@ return (
           <Route path="/categorias" element={<RutaProtegida><Categorias /></RutaProtegida>} />
           <Route path="/catalogo" element={<Catalogo />} />
           <Route path="/productos" element={<RutaProtegida><Productos /></RutaProtegida>} />
+          <Route path="/empleados" element={<RutaProtegida><Empleados /></RutaProtegida>} />
+          <Route path="/permisos" element={<RutaProtegida><Permisos /></RutaProtegida>} />
           <Route path="*" element={<Pagina404 />} />
         </Routes>
       </Container> {/* <--- CIERRA EL CONTAINER */}

@@ -1,15 +1,26 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const RutaProtegida = ({ children }) => {
-  //Verifica si el usuario está autenticado usando localstorage
-  const estaLogueado = !!localStorage.getItem("usuario-supabase");
+  const { usuario, cargando } = useAuth();
 
-  // Log para depuración 
-  console.log("Usuario autenticado:", estaLogueado);
+  // Mostrar indicador de carga mientras se verifica la sesión
+  if (cargando) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+          <p className="mt-3 text-muted">Verificando sesión...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Si está autenticado, redirige a la página login
-  return estaLogueado ? children : <Navigate to="/login" replace />;
+  // Si no hay usuario autenticado, redirigir al login
+  return usuario ? children : <Navigate to="/login" replace />;
 };
 
 export default RutaProtegida;
