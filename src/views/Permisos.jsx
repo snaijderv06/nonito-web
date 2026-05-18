@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Button, Spinner, Alert } from "react-bootstrap";
 import { supabase } from "../Database/supabaseconfig";
 import NotificacionOperacion from "../components/NotificacionOperacion";
-import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
+import CuadroBusquedas from "../components/Busquedas/CuadroBusquedas";
 import TablaPermisos from "../components/permisos/TablaPermisos";
 import TarjetaPermisos from "../components/permisos/TarjetaPermisos";
 import ModalEdicionPermisos from "../components/permisos/ModalEdicionPermisos";
