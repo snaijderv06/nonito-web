@@ -3,9 +3,9 @@ import { Container, Row, Col, Button, Spinner, Alert } from "react-bootstrap";
 import { supabase } from "../Database/supabaseconfig";
 import NotificacionOperacion from "../components/NotificacionOperacion";
 import CuadroBusquedas from "../components/Busquedas/CuadroBusquedas";
-import TablaPermisos from "../components/permisos/TablaPermisos";
-import TarjetaPermisos from "../components/permisos/TarjetaPermisos";
-import ModalEdicionPermisos from "../components/permisos/ModalEdicionPermisos";
+import TablaPermisos from "../components/Permisos/TablaPermisos";
+import TarjetaPermisos from "../components/Permisos/TarjetaPermisos";
+import ModalEdicionPermisos from "../components/Permisos/ModalEdicionPermisos";
 
 const Permisos = () => {
   const [roles, setRoles] = useState([]);
