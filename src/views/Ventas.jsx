@@ -56,14 +56,17 @@ const Ventas = () => {
     try {
       setCargando(true);
       const { data, error } = await supabase
-        .from("ventas")
-        .select(`
+      .from("ventas")
+      .select(`
+        *,
+        clientes (nombre_cliente, apellido_cliente),
+        empleados (nombre_empleado, apellido_empleado),
+        detalles_ventas (
           *,
-          clientes (nombre_cliente, apellido_cliente),
-          empleados (nombre_empleado, apellido_empleado),
-          detalles_ventas (*, productos (nombre_producto))
-        `)
-        .order("fecha_venta", { ascending: false });
+          Productos (nombre_producto)
+        )
+      `)
+      .order("fecha_venta", { ascending: false });
 
       if (error) {
         console.error("Error al cargar ventas:", error);
@@ -191,7 +194,7 @@ const Ventas = () => {
           total: totalGeneral
         }).eq("id_venta", ventaAEditar.id_venta);
 
-        await supabase.from("detalles_ventas").delete().eq("id_venta", ventaAEditar.id_venta);
+        await supabase.from("detalles_ventas").insert(detallesInsert);
 
         const detallesInsert = detalles.map(d => ({
           id_venta: ventaAEditar.id_venta,
@@ -298,7 +301,7 @@ const Ventas = () => {
         />
       )}
 
-      <FormularioVenta
+      <FormularioVentas
         mostrar={mostrarFormulario}
         setMostrar={setMostrarFormulario}
         clientes={clientes}
