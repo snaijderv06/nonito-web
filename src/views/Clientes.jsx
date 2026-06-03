@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button, Spinner, Alert } from "react-bootstrap";
-import { supabase } from "../database/supabaseconfig";
+import { supabase } from "../Database/supabaseconfig";
 import TarjetaCliente from "../components/clientes/TarjetaCliente";
 import ModalRegistroCliente from "../components/clientes/ModalRegistroCliente";
 import ModalEliminacionCliente from "../components/clientes/ModalEliminacionCliente";
