@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Modal, Button, Form, Spinner, Table } from 'react-bootstrap';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { supabase } from '../../database/supabaseconfig';
+import { supabase } from '../../Database/supabaseconfig';
 
 const ChatIA = ({ mostrar, onCerrar }) => {
   const [mensajes, setMensajes] = useState([]);
