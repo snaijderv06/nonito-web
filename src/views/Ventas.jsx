@@ -4,7 +4,7 @@ import { Container, Row, Col, Button, Spinner } from "react-bootstrap";
 import { supabase } from "../Database/supabaseconfig";
 import NotificacionOperacion from "../components/NotificacionOperacion";
 import CuadroBusquedas from "../components/Busquedas/CuadroBusquedas";
-import Paginacion from "../components/ordenamiento/Paginacion";
+import Paginacion from "../components/Ordenamiento/Paginacion";
 import TablaVentas from "../components/ventas/TablaVentas";
 import TarjetaVenta from "../components/ventas/TarjetaVenta";
 import FormularioVentas from "../components/ventas/FormularioVentas";
