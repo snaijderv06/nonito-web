@@ -4,6 +4,7 @@ import { Container, Nav, Navbar, Offcanvas } from "react-bootstrap";
 import logo from "../../assets/Logo.png";
 import { supabase } from "../../Database/supabaseconfig";
 import { useAuth } from "../../context/AuthContext";
+import ChatIA from "../ia/chatia";
 
 const Encabezado = () => {
 
@@ -11,6 +12,7 @@ const Encabezado = () => {
   const navigate = useNavigate();
   const location = useLocation(); //Para detectar la ruta actual
   const { tienePermiso, logout, usuario } = useAuth();
+  const [mostrarChatIA, setMostrarChatIA] = useState(false);
 
   const manejarToggle = () => setMostrarMenu(!mostrarMenu);
 
@@ -143,6 +145,16 @@ const Encabezado = () => {
             </Nav.Link>
           )}
 
+          
+         {/* BOTÓN CHAT IA */}
+          <Nav.Link
+            onClick={() => setMostrarChatIA(true)}
+            className={mostrarMenu ? "color-texto-marca" : "text-white"}
+          >
+            <i className="bi bi-robot me-2"></i>
+            <strong>Chat IA</strong>
+          </Nav.Link>
+
 
             <hr />
 
@@ -182,8 +194,9 @@ const Encabezado = () => {
   }
 
   return (
+     <>
     <Navbar expand="md" fixed="top" className="color-navbar shadow-lg" variant="dark">
-      <Container fluid>
+      {<Container fluid>
 
         <Navbar.Brand
           onClick={() => manejarNavegacion(esCatalogo ? "/catalogo" : "/")}
@@ -225,8 +238,14 @@ const Encabezado = () => {
             {contenidoMenu}
           </Offcanvas.Body>
         </Navbar.Offcanvas>
-      </Container>
+      </Container>}
     </Navbar>
+
+    <ChatIA
+      mostrar={mostrarChatIA}
+      onCerrar={() => setMostrarChatIA(false)}
+    />
+  </>
   );
 }
 
