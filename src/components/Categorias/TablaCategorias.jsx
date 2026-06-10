@@ -6,7 +6,8 @@ const TablaCategorias = ({
   categorias,
   abrirModalEdicion,
   abrirModalEliminacion,
-  generarPDFCategoria
+  generarPDFCategoria,
+  copiarCategoria
 }) => {
   
   // Si no hay categorías o el array está vacío, loading es true
@@ -62,6 +63,15 @@ const TablaCategorias = ({
                   onClick={() => generarPDFCategoria(categoria)}
                 >
                   <i className="bi bi-file-earmark-pdf"></i>
+                </Button>
+
+                <Button
+                  variant="outline-success"
+                  size="sm"
+                  className="m-1"
+                  onClick={() => copiarCategoria(categoria)}
+                >
+                  <i className="bi bi-clipboard"></i>
                 </Button>
                 </td>
               </tr>

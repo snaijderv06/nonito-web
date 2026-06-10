@@ -9,6 +9,7 @@ import TablaProductos from "../components/productos/TablaProductos";
 import TarjetasProductos from "../components/productos/TarjetasProductos";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
 import Paginacion from "../components/Ordenamiento/Paginacion";
+import ModalQRProducto from "../components/productos/ModalQrProducto";
 
 const Productos = () => {
 
@@ -24,6 +25,8 @@ const Productos = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+  const [mostrarModalQR, setMostrarModalQR] = useState(false);
+  const [productoQR, setProductoQR] = useState(null);
 
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre_producto: "",
@@ -362,6 +365,58 @@ const Productos = () => {
       }
     };
 
+    const copiarProducto = async (producto) => {
+      if (!producto) return;
+
+      const categoria = categorias.find(
+        (cat) => String(cat.id_categoria) === String(producto.categoria_producto)
+      );
+
+      const nombreCategoria = categoria
+        ? categoria.nombre_categoria
+        : "Sin categoría";
+
+      const texto = `
+    ID: ${producto.id_producto}
+    Producto: ${producto.nombre_producto}
+    Categoría: ${nombreCategoria}
+    Precio: C$ ${Number(producto.precio_venta).toFixed(2)}
+    Descripción: ${producto.descripcion_producto || "Sin descripción"}
+    `;
+
+      try {
+        await navigator.clipboard.writeText(texto);
+
+        setToast({
+          mostrar: true,
+          mensaje: `Producto "${producto.nombre_producto}" copiado al portapapeles`,
+          tipo: "exito",
+        });
+      } catch (err) {
+        console.error("Error al copiar:", err);
+
+        setToast({
+          mostrar: true,
+          mensaje: "No se pudo copiar al portapapeles",
+          tipo: "error",
+        });
+      }
+    };
+
+    const generarQRImagen = (producto) => {
+      if (!producto?.url_imagen) {
+        setToast({
+          mostrar: true,
+          mensaje: "Este producto no tiene imagen asociada",
+          tipo: "advertencia"
+        });
+        return;
+      }
+
+      setProductoQR(producto);
+      setMostrarModalQR(true);
+    };
+
 return (
   <Container className="mt-3">
     <Row className="align-items-center mb-3">
@@ -413,6 +468,8 @@ return (
             categorias={categorias}
             abrirModalEdicion={abrirModalEdicion}
             abrirModalEliminacion={abrirModalEliminacion}
+            copiarProducto={copiarProducto}
+             generarQRImagen={generarQRImagen}
           />
         </Col>
 
@@ -422,6 +479,8 @@ return (
             categorias={categorias}
             abrirModalEdicion={abrirModalEdicion}
             abrirModalEliminacion={abrirModalEliminacion}
+            copiarProducto={copiarProducto}
+             generarQRImagen={generarQRImagen}
           />
         </Col>
       </Row>
@@ -472,6 +531,12 @@ return (
         establecerRegistrosPorPagina={establecerRegistrosPorPagina}
       />
     )}
+
+    <ModalQRProducto
+      mostrar={mostrarModalQR}
+      onHide={() => setMostrarModalQR(false)}
+      producto={productoQR}
+    />
   </Container>
 );
 };
