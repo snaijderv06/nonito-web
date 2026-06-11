@@ -1,11 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,  useRef  } from "react";
 import { Container, Row, Col, Card, Spinner, Form, Button } from "react-bootstrap";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
 import { supabase } from "../Database/supabaseconfig";
 import * as XLSX from 'xlsx';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import html2canvas from "html2canvas";
+
 
 const Inicio = () => {
+  const dashboardRef = useRef(null);
+  const graficoCategoriaRef = useRef(null);
+  const graficoHoraRef = useRef(null);
   const [cargando, setCargando] = useState(true);
   const [fechaDesde, setFechaDesde] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "America/Managua" }));
   const [fechaHasta, setFechaHasta] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "America/Managua" }));
@@ -46,23 +53,29 @@ const cargarDatos = async (desde, hasta) => {
     let ventasPorCategoria = [];
 
     if (idsVentas.length > 0) {
-      const { data: detalles } = await supabase
+      const { data: detalles, error: errorDetalles } = await supabase
         .from("detalles_ventas")
         .select(`
-          cantidad, 
+          cantidad,
           subtotal,
-          productos (
+          id_producto,
+          Productos (
             nombre_producto,
-            categorias (nombre_categoria)
+            Categorias (
+              nombre_categoria
+            )
           )
         `)
         .in("id_venta", idsVentas);
+
+      if (errorDetalles) throw errorDetalles;
 
       detalles?.forEach(d => {
         productosVendidos += d.cantidad || 0;
         montoProductos += d.subtotal || 0;
 
-        const categoria = d.productos?.categorias?.nombre_categoria || "Sin categoría";
+        const categoria =
+  d.Productos?.Categorias?.nombre_categoria || "Sin categoría";
         const existente = ventasPorCategoria.find(c => c.name === categoria);
         
         if (existente) {
@@ -205,9 +218,197 @@ if (cargando) {
   );
 }
 
+const generarPdfVentasHora = async () => {
+  try {
+
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    // Título y fecha
+    pdf.setFontSize(18);
+    pdf.setTextColor("#330775");
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Reporte de Ventas por Hora", 14, 15);
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor("#000000");
+    pdf.setFontSize(10);
+    pdf.text(`Periodo: ${fechaDesde} - ${fechaHasta}`, 14, 22);
+
+    // Imagen del gráfico
+    const canvas = await html2canvas(graficoHoraRef.current);
+    const imagen = canvas.toDataURL("image/png");
+
+    pdf.addImage(imagen, "PNG", 10, 30, 190, 80);
+
+    // Resumen general
+    pdf.setFontSize(14);
+    pdf.setTextColor("#330775");
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Resumen General", 14, 115);
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor("#000000");
+    pdf.setFontSize(10);
+
+    pdf.text(`Total Ventas: C$ ${estadisticas.totalVentas.toFixed(2)}`, 14, 125);
+    pdf.text(`Ventas Efectivo: C$ ${estadisticas.ventasEfectivo.toFixed(2)}`, 14, 132);
+    pdf.text(`Ventas Tarjeta: C$ ${estadisticas.ventasTarjeta.toFixed(2)}`, 14, 139);
+    pdf.text(`Productos Vendidos: ${estadisticas.productosVendidos}`, 14, 146);
+    pdf.text(`Cantidad Ventas: ${estadisticas.cantidadVentas}`, 14, 153);
+
+    // Tabla de ventas por hora
+    const filas = estadisticas.ventasPorHora.map(item => [
+      item.hora,
+      `C$ ${item.total}`
+    ]);
+
+    autoTable(pdf, {
+      startY: 160,
+      head: [["Hora", "Monto Acumulado"]],
+      body: filas
+    });
+
+    // Descargar PDF
+    const fechaActual = new Date().toLocaleDateString(
+      "en-CA",
+      { timeZone: "America/Managua" }
+    );
+
+    pdf.save(
+      `VentasHora_${fechaDesde}_${fechaHasta}_Generado_${fechaActual}.pdf`
+    );
+
+  } catch (error) {
+    console.error(error);
+    alert("Error generando PDF");
+  }
+};
+
+const generarPdfVentasCategoria = async () => {
+  try {
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    pdf.setFontSize(18);
+    pdf.setTextColor("#330775");
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Reporte de Ventas por Categoría", 14, 15);
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor("#000000");
+    pdf.setFontSize(10);
+    pdf.text(`Periodo: ${fechaDesde} - ${fechaHasta}`, 14, 22);
+
+    const canvas = await html2canvas(graficoCategoriaRef.current);
+    const imagen = canvas.toDataURL("image/png");
+
+    pdf.addImage(imagen, "PNG", 15, 30, 180, 130);
+
+    pdf.setFontSize(14);
+    pdf.setTextColor("#330775");
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Resumen General", 14, 130);
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor("#000000");
+    pdf.setFontSize(10);
+
+    pdf.text(`Total Ventas: C$ ${estadisticas.totalVentas.toFixed(2)}`, 14, 140);
+    pdf.text(`Productos Vendidos: ${estadisticas.productosVendidos}`, 14, 147);
+    pdf.text(`Monto Productos: C$ ${estadisticas.montoProductos.toFixed(2)}`, 14, 154);
+    pdf.text(`Cantidad Ventas: ${estadisticas.cantidadVentas}`, 14, 161);
+
+    const filas = estadisticas.ventasPorCategoria.map(item => [
+      item.name,
+      `C$ ${item.value.toFixed(2)}`
+    ]);
+
+    autoTable(pdf, {
+      startY: 170,
+      head: [["Categoría", "Monto Vendido"]],
+      body: filas.length > 0 ? filas : [["Sin datos", "C$ 0.00"]],
+    });
+
+    const fechaActual = new Date().toLocaleDateString(
+      "en-CA",
+      { timeZone: "America/Managua" }
+    );
+
+    pdf.save(
+      `VentasCategoria_${fechaDesde}_${fechaHasta}_Generado_${fechaActual}.pdf`
+    );
+
+  } catch (error) {
+    console.error(error);
+    alert("Error generando PDF de categorías");
+  }
+};
+
+const generarPdfGeneral = async () => {
+  try {
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    pdf.setFontSize(18);
+    pdf.setTextColor("#330775");
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Reporte General de Estadísticas", 14, 15);
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor("#000000");
+    pdf.setFontSize(10);
+    pdf.text(`Periodo: ${fechaDesde} - ${fechaHasta}`, 14, 22);
+
+    const canvas = await html2canvas(dashboardRef.current);
+    const imagen = canvas.toDataURL("image/png");
+
+    pdf.addImage(imagen, "PNG", 10, 30, 190, 115);
+
+    pdf.setFontSize(14);
+    pdf.setTextColor("#330775");
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Resumen General", 14, 155);
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor("#000000");
+    pdf.setFontSize(10);
+
+    pdf.text(`Total Ventas: C$ ${estadisticas.totalVentas.toFixed(2)}`, 14, 165);
+    pdf.text(`Ventas Efectivo: C$ ${estadisticas.ventasEfectivo.toFixed(2)}`, 14, 172);
+    pdf.text(`Ventas Tarjeta: C$ ${estadisticas.ventasTarjeta.toFixed(2)}`, 14, 179);
+    pdf.text(`Productos Vendidos: ${estadisticas.productosVendidos}`, 14, 186);
+    pdf.text(`Monto Productos: C$ ${estadisticas.montoProductos.toFixed(2)}`, 14, 193);
+    pdf.text(`Cantidad Ventas: ${estadisticas.cantidadVentas}`, 14, 200);
+
+    const filasCategorias = estadisticas.ventasPorCategoria.map(item => [
+      item.name,
+      `C$ ${item.value.toFixed(2)}`
+    ]);
+
+    autoTable(pdf, {
+      startY: 210,
+      head: [["Categoría", "Monto Vendido"]],
+      body: filasCategorias.length > 0
+        ? filasCategorias
+        : [["Sin datos", "C$ 0.00"]],
+    });
+
+    const fechaActual = new Date().toLocaleDateString(
+      "en-CA",
+      { timeZone: "America/Managua" }
+    );
+
+    pdf.save(
+      `ReporteGeneral_${fechaDesde}_${fechaHasta}_Generado_${fechaActual}.pdf`
+    );
+
+  } catch (error) {
+    console.error(error);
+    alert("Error generando PDF general");
+  }
+};
+
 
   return (
-    <div className="mt-2">
+    <div className="mt-2" ref={dashboardRef}>
   <div className="mb-4">
     <h2>Dashboard</h2>
     <h6>Estadísticas del Negocio</h6>
@@ -230,6 +431,15 @@ if (cargando) {
       <Button variant="success" onClick={descargarExcel}>
         <i className="bi bi-file-earmark-excel me-2"></i>
         Descargar Excel
+      </Button>
+
+      <Button
+        variant="danger"
+        onClick={generarPdfGeneral}
+        className="ms-2"
+      >
+        <i className="bi bi-file-earmark-pdf me-2"></i>
+        Descargar PDF
       </Button>
     </Col>
   </Row>
@@ -275,36 +485,57 @@ if (cargando) {
   <Row className="g-4">
     <Col lg={8}>
       <Card className="shadow border-0">
-        <Card.Body>
-          <h5 className="mb-3">Ventas por Hora</h5>
-          <ResponsiveContainer width="100%" height={360}>
-            <LineChart data={estadisticas.ventasPorHora}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="hora" />
-              <YAxis tickFormatter={(v) => `C$${v}`} />
-              <Tooltip formatter={(v) => [`C$ ${v}`, "Monto"]} />
-              <Line type="monotone" dataKey="total" stroke="#5e26b2" strokeWidth={4} dot={{ r: 6 }} />
-            </LineChart>
-          </ResponsiveContainer>
+        <Card.Body ref={graficoHoraRef}>
+    <h5 className="mb-3">Ventas por Hora</h5>
+
+    <ResponsiveContainer width="100%" height={360}>
+      <LineChart data={estadisticas.ventasPorHora}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="hora" />
+        <YAxis tickFormatter={(v) => `C$${v}`} />
+        <Tooltip formatter={(v) => [`C$ ${v}`, "Monto"]} />
+        <Line
+          type="monotone"
+          dataKey="total"
+          stroke="#5e26b2"
+          strokeWidth={4}
+          dot={{ r: 6 }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
         </Card.Body>
       </Card>
+    <div className="p-3 text-center">
+        <Button
+          variant="outline-danger"
+          onClick={generarPdfVentasHora}
+        >
+          <i className="bi bi-file-earmark-pdf me-2"></i>
+          Descargar PDF
+        </Button>
+      </div>
     </Col>
 
     <Col lg={4}>
       <Card className="shadow border-0">
-        <Card.Body>
+        <Card.Body ref={graficoCategoriaRef}>
           <h5 className="mb-3">Ventas por Categoría</h5>
           <ResponsiveContainer width="100%" height={360}>
             <PieChart>
               <Pie
-                data={estadisticas.ventasPorCategoria.length > 0 ? estadisticas.ventasPorCategoria : [{ name: "Sin datos", value: 1 }]}
-                dataKey="value"
-                nameKey="name"
-                cx="50%" cy="50%"
-
-                                innerRadius={60} outerRadius={110}
-                label
-              >
+                  data={
+                    estadisticas.ventasPorCategoria.length > 0
+                      ? estadisticas.ventasPorCategoria
+                      : [{ name: "Sin datos", value: 1 }]
+                  }
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={110}
+                  label={({ name }) => name}
+                >
                 {estadisticas.ventasPorCategoria.map((_, i) => (
                   <Cell key={`cell-${i}`} fill={COLORES[i % COLORES.length]} />
                 ))}
@@ -314,6 +545,15 @@ if (cargando) {
           </ResponsiveContainer>
         </Card.Body>
       </Card>
+      <div className="p-3 text-center">
+        <Button
+          variant="outline-danger"
+          onClick={generarPdfVentasCategoria}
+        >
+          <i className="bi bi-file-earmark-pdf me-2"></i>
+          Descargar PDF
+        </Button>
+      </div>
     </Col>
   </Row>
 </div>
